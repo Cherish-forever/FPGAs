@@ -1,3 +1,4 @@
 *.vcd
 *.lxt
+*.pyc
 build
