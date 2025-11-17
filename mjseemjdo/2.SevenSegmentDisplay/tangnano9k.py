@@ -12,7 +12,7 @@ class SevenSegmentTop(Elaboratable):
 
         m.submodules.seven_segment = seven_segment = SevenSegment()
 
-        count = Signal(27)
+        count = Signal(24)
 
         m.d.sync += count.eq(count + 1)
 
@@ -20,6 +20,7 @@ class SevenSegmentTop(Elaboratable):
 
         count_max = (1 << count.shape().width -1)
         m.d.sync += number_in.eq(Mux(count == count_max, number_in + 1, number_in))
+        m.d.comb += seven_segment.number_in.eq(number_in)
 
         segments = [platform.request("led", i) for i in range(6)]
 
