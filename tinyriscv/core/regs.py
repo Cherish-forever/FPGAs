@@ -31,11 +31,14 @@ class Regs(Component):
     def elaborate(self, platform):
         m = Module()
 
+        # create x0-x31 registers
         regs = Array([Signal(self.data_width, reset=0, name=f"x{i}") for i in range(32)])
 
+        # write rd register
         with m.If(self.rd.enable & (self.rd.id != 0)):
             m.d.sync += regs[self.rd.id].eq(self.rd.data)
 
+        # read rs1
         with m.If(self.rs1.id == 0):
             m.d.comb += self.rs1.data.eq(0)
         with m.Elif((self.rs1.id == self.rd.id) &  self.rd.enable):
@@ -43,6 +46,7 @@ class Regs(Component):
         with m.Else():
             m.d.comb += self.rs1.data.eq(regs[self.rs1.id])
 
+        # read rs2
         with m.If(self.rs2.id == 0):
             m.d.comb += self.rs2.data.eq(0)
         with m.Elif((self.rs2.id == self.rd.id) & self.rd.enable):

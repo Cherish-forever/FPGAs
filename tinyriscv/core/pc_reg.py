@@ -30,15 +30,15 @@ class ProgramCounter(Component):
     def elaborate(self, platform):
         m = Module()
 
+        # create pc register
         pc_reg = Signal(self.addr_width, reset=self.cpu_reset_addr)
 
-        with m.If(self.jump.enable):
+        with m.If(self.jump.enable): # jump
             m.d.sync += pc_reg.eq(self.jump.target)
-        with m.Else():
-            with m.If(self.hold >= HoldFlag.HOLD_PC):
-                m.d.sync += pc_reg.eq(pc_reg)
-            with m.Else():
-                m.d.sync += pc_reg.eq(pc_reg + 4)
+        with m.Elif(self.hold >= HoldFlag.HOLD_PC): # hold
+            m.d.sync += pc_reg.eq(pc_reg)
+        with m.Else(): # output
+            m.d.sync += pc_reg.eq(pc_reg + 4)
 
         m.d.comb += self.pc_o.eq(pc_reg)
 
