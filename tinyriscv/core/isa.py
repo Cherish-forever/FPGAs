@@ -2,12 +2,20 @@ from amaranth import *
 from amaranth.lib.enum import Enum
 from amaranth.hdl.ast import unsigned
 
-__all__ = [ "INST_NOP", "INST_MRET", "INST_ECALL", "INST_EBREAK", "INST_RET", "Opcode", "Funct3", "Funct7"]
+__all__ = [ "INST_ECALL", "INST_EBREAK", "INST_MRET", "INST_SRET", "INST_URET",
+            "INST_NOP", "INST_FENCE", "INST_FENCE_I", "INST_WFT", "INST_RET",
+            "Opcode", "Funct3", "Funct7", "HoldFlag"]
 
-INST_NOP    = 0x00000013
-INST_MRET   = 0x30200073
 INST_ECALL  = 0x00000073
 INST_EBREAK = 0x00100073
+INST_MRET   = 0x30200073
+INST_SRET   = 0x10200073
+INST_URET   = 0x00200073
+
+INST_NOP    = 0x00000013
+INST_FENCE  = 0x0000000F
+INST_FENCE_I= 0x0000100F
+INST_WFT    = 0x10500073
 INST_RET    = 0x00008067
 
 class Opcode(Enum, shape=unsigned(7)):
@@ -26,22 +34,22 @@ class Opcode(Enum, shape=unsigned(7)):
 class Funct3(Enum, shape=unsigned(3)):
     " 3bits Function code "
 
-    # I-type ALU Operate
-    ADDI  = 0b000
-    SLTI  = 0b010
-    SLTIU = 0b011
-    XORI  = 0b100
-    ORI   = 0b110
-    ANDI  = 0b111
-    SLLI  = 0b001
-    SRI   = 0b101
+    # I-type ALU Operate -> OP_IMM
+    ADDI  = 0b000, SLTI  = 0b010, SLTIU = 0b011
+    XORI  = 0b100, ORI   = 0b110, ANDI  = 0b111
+    SLLI  = 0b001, SRI   = 0b101
 
-    # Load/Store Operate
+    # R-type ALU Operate -> OP
+    ADD_SUB = 0b000, SLL = 0b001, SLT = 0b010
+    SLTU    = 0b011, XOR = 0b100, SR  = 0b101
+    OR      = 0b110, AND = 0b111
+
+    # Load/Store Operate -> LOAD/STORE
     LB  = 0b000; LH  = 0b001; LW = 0b010
     LBU = 0b100; LHU = 0b101
     SB  = 0b000; SH  = 0b001; SW = 0b010
 
-    # Branch Operate
+    # Branch Operate -> BRANCH
     BEQ  = 0b000; BNE  = 0b001
     BLT  = 0b100; BGE  = 0b101
     BLTU = 0b110; BGEU = 0b111
@@ -62,3 +70,10 @@ class Funct7(Enum, shape=unsigned(7)):
     MULHSU = 0b0000001; MULHU = 0b0000001
     DIV    = 0b0000001; DIVU  = 0b0000001
     REM    = 0b0000001; REMU  = 0b0000001
+
+class HoldFlag(Enum, shape=unsigned(3)):
+    """Hold flag"""
+    HOLD_NONE=0
+    HOLD_PC = 1
+    HOLD_IF = 2
+    HOLD_ID = 3

@@ -1,6 +1,8 @@
 from amaranth import *
 from amaranth.lib.wiring import *
-from amaranth.lib.enum import Enum
+
+from isa import HoldFlag
+
 
 class JumpBusSignature(Signature):
     def __init__(self, addr_width=32):
@@ -8,13 +10,6 @@ class JumpBusSignature(Signature):
             "enable": In(1),
             "target": In(addr_width)
         })
-
-class HoldFlag(Enum, shape=unsigned(3)):
-    """Hold flag"""
-    HOLD_NONE=0
-    HOLD_PC = 1
-    HOLD_IF = 2
-    HOLD_ID = 3
 
 class ProgramCounter(Component):
     def __init__(self, addr_width=32, cpu_reset_addr=0x00000000):

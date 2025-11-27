@@ -1,19 +1,22 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 
-class WriteRegSignature(Signature):
+class RegSignature(Signature):
     def __init__(self, id_width=5, data_width=32):
-        super().__init__({
+        self.id_width = id_width
+        self.data_width = data_width
+
+    def write(self):
+        return  Signature({
             "enable": In(1),
-            "id": In(id_width),
-            "data": In(data_width)
+            "id": In(self.id_width),
+            "data": In(self.data_width)
         })
 
-class ReadRegSignature(Signature):
-    def __init__(self, id_width=5, data_width=32):
-        super().__init__({
-            "id": In(id_width),
-            "data": Out(data_width)
+    def read(self):
+        return  Signature({
+            "id": In(self.id_width),
+            "data": Out(self.data_width)
         })
 
 class Regs(Component):
@@ -23,9 +26,9 @@ class Regs(Component):
         self.id_width = id_width
 
         super().__init__(Signature({
-            "rd": In(WriteRegSignature(id_width, data_width)),
-            "rs1": In(ReadRegSignature(id_width, data_width)),
-            "rs2": In(ReadRegSignature(id_width, data_width)),
+            "rd":  In(RegSignature(id_width, data_width).write()),
+            "rs1": Out(RegSignature(id_width, data_width).read()),
+            "rs2": Out(RegSignature(id_width, data_width).read()),
         }))
 
     def elaborate(self, platform):

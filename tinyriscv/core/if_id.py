@@ -1,29 +1,31 @@
 from amaranth import *
 from amaranth.lib.wiring import *
 
-from pc_reg import HoldFlag
-from isa import INST_NOP
+from isa import INST_NOP, HoldFlag
 
-class FetchInstructionSignature(Signature):
+class InstructionSignature(Signature):
     def __init__(self, addr_width=32, inst_width=32):
-        super().__init__({
-            "addr": Out(addr_width),
-            "inst": In(inst_width)
+        self.addr_width = addr_width
+        self.inst_width = inst_width
+
+    def fetch(self):
+        return Signature({
+            "addr": Out(self.addr_width),
+            "inst": In(self.inst_width)
         })
 
-class OutputInstructionSignature(Signature):
-  def __init__(self, addr_width=32, inst_width=32):
-      super().__init__({
-            "addr": Out(addr_width),
-            "inst": Out(inst_width)
+    def output(self):
+        return Signature({
+            "addr": Out(self.addr_width),
+            "inst": Out(self.inst_width)
         })
 
 class InstructionFetch(Component):
     def __init__(self, addr_width=32, inst_width=32):
 
         super().__init__(Signature({
-            "fetch": In(FetchInstructionSignature(addr_width, inst_width)),
-            "output": In(OutputInstructionSignature(addr_width, inst_width)),
+            "from_memory": In(InstructionSignature(addr_width, inst_width).fetch()),
+            "to_decode": Out(InstructionSignature(addr_width, inst_width).output()),
             "hold": In(HoldFlag),
         }))
 
@@ -35,8 +37,8 @@ class InstructionFetch(Component):
         m.d.comb += hold_en.eq(self.hold >= HoldFlag.HOLD_IF)
 
         m.d.sync += [
-            self.output.inst.eq(Mux(hold_en, INST_NOP, self.fetch.inst)),
-            self.output.addr.eq(Mux(hold_en, 0, self.fetch.addr)),
+            self.to_decode.inst.eq(Mux(hold_en, INST_NOP, self.from_memory.inst)),
+            self.to_decode.addr.eq(Mux(hold_en, 0, self.from_memory.addr)),
         ]
 
         return m
